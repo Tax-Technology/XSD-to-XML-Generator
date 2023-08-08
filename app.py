@@ -1,6 +1,7 @@
 import streamlit as st
 import xml.sax as sax
 import requests
+import xmlschema
 
 class MyContentHandler(sax.ContentHandler):
     def __init__(self):
@@ -49,24 +50,15 @@ def generate_xml(xsd_content: str):
 def main():
     """The main function."""
 
-    # Get user's choice of XSD input method
-    xsd_input_method = st.radio(
-        "Choose XSD input method:",
-        ("Local File Path", "URL", "File Upload", "Sample XSD")
-    )
+    # Dropdown options for predefined XSD files
+    predefined_xsd_options = {
+        "FAIA Reduced Version A": "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_reduced_version_A.xsd",
+        "FAIA Reduced Version B": "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_reduced_version_B.xsd",
+        "FAIA Full Version": "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_full.xsd"
+    }
+    selected_predefined_xsd = st.selectbox("Choose a predefined XSD file:", list(predefined_xsd_options.keys()))
 
-    if xsd_input_method == "Local File Path":
-        xsd_content = open(st.text_input('Enter the path to the local XSD file:'), 'r').read()
-    elif xsd_input_method == "URL":
-        xsd_content = requests.get(st.text_input('Enter the URL to the XSD file:')).text
-    elif xsd_input_method == "File Upload":
-        xsd_file = st.file_uploader('Upload XSD File', type=['xsd'])
-        if xsd_file:
-            xsd_content = xsd_file.read().decode('utf-8')
-    else:
-        # Use the predefined sample XSD from the provided URL
-        sample_xsd_url = "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_full.xsd"
-        xsd_content = requests.get(sample_xsd_url).text
+    xsd_content = requests.get(predefined_xsd_options[selected_predefined_xsd]).text
 
     if xsd_content:
         try:
@@ -75,6 +67,27 @@ def main():
 
             # Display the generated XML using Streamlit markdown.
             st.markdown(f"Generated XML:\n\n```xml\n{xml_document}\n```")
+
+            # Create an XMLSchema object for the XSD schema
+            xsd = xmlschema.XMLSchema(xsd_content)
+
+            # Extract schema information
+            schema_info = xsd.schema_info()
+
+            # Display schema documentation using Streamlit markdown
+            st.write("### Schema Documentation")
+            st.write("Allowed Elements:")
+            for element_name, element_info in schema_info.elements.items():
+                st.write(f"- {element_name} (Type: {element_info.type_name})")
+
+            st.write("Allowed Attributes:")
+            for attr_name, attr_info in schema_info.attributes.items():
+                st.write(f"- {attr_name} (Type: {attr_info.type_name})")
+
+            st.write("Type Definitions:")
+            for type_name, type_info in schema_info.types.items():
+                st.write(f"- {type_name} (Base Type: {type_info.base_type_name})")
+
         except Exception as e:
             st.error(f"Error: {e}")
 
