@@ -50,6 +50,8 @@ def generate_xml(xsd_content: str):
 def main():
     """The main function."""
 
+    st.title("XSD-to-XML Generator and Schema Documentation")
+
     # Dropdown options for predefined XSD files
     predefined_xsd_options = {
         "FAIA Reduced Version A": "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_reduced_version_A.xsd",
@@ -62,31 +64,29 @@ def main():
 
     if xsd_content:
         try:
+            # Create an XMLSchema object for the XSD schema
+            xsd = xmlschema.XMLSchema(xsd_content)
+
+            # Display schema documentation using Streamlit markdown
+            st.write("### Schema Documentation")
+            st.write("Schema Elements:")
+            for element_name in xsd.elements:
+                st.write(f"- {element_name}")
+
+            st.write("Schema Attributes:")
+            for attr_name in xsd.attributes:
+                st.write(f"- {attr_name}")
+
+            st.write("Schema Types:")
+            for type_name in xsd.types:
+                st.write(f"- {type_name}")
+
             # Generate the XML document.
             xml_document = generate_xml(xsd_content)
 
             # Display the generated XML using Streamlit markdown.
-            st.markdown(f"Generated XML:\n\n```xml\n{xml_document}\n```")
-
-            # Create an XMLSchema object for the XSD schema
-            xsd = xmlschema.XMLSchema(xsd_content)
-
-            # Extract schema information
-            schema_info = xsd.schema_info()
-
-            # Display schema documentation using Streamlit markdown
-            st.write("### Schema Documentation")
-            st.write("Allowed Elements:")
-            for element_name, element_info in schema_info.elements.items():
-                st.write(f"- {element_name} (Type: {element_info.type_name})")
-
-            st.write("Allowed Attributes:")
-            for attr_name, attr_info in schema_info.attributes.items():
-                st.write(f"- {attr_name} (Type: {attr_info.type_name})")
-
-            st.write("Type Definitions:")
-            for type_name, type_info in schema_info.types.items():
-                st.write(f"- {type_name} (Base Type: {type_info.base_type_name})")
+            st.write("### Generated XML")
+            st.code(xml_document, language="xml")
 
         except Exception as e:
             st.error(f"Error: {e}")
