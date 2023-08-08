@@ -4,7 +4,7 @@ import requests
 
 def get_element_info(element, level=0):
     info = f"{'  ' * level}- {element.name} (Type: {element.type_name})"
-    for sub_element in element.type.content_type.iter_elements():
+    for sub_element in element.type.iter_elements():
         info += "\n" + get_element_info(sub_element, level + 1)
     return info
 
@@ -12,8 +12,7 @@ def get_keyref_info(schema):
     keyref_info = []
     for element_name, element in schema.elements.items():
         if element.keyref:
-            for keyref in element.keyref:
-                keyref_info.append(f"- Element: {element_name}, Keyref: {keyref.name}")
+            keyref_info.extend([f"- Element: {element_name}, Keyref: {keyref.name}" for keyref in element.keyref])
     return keyref_info
 
 def main():
@@ -41,14 +40,12 @@ def main():
                 for root_element_name in xsd.root_elements:
                     root_element = xsd.elements[root_element_name]
                     st.write(f"Root Element: {root_element_name} (Type: {root_element.type_name})")
-                    info = get_element_info(root_element)
-                    st.write(info)
+                    st.write(format(get_element_info(root_element), indent=2))
 
             keyref_info = get_keyref_info(xsd)
             if keyref_info:
                 st.write("Keyref Elements:")
-                for keyref in keyref_info:
-                    st.write(keyref)
+                st.write(format("\n".join(keyref_info), indent=2))
 
             # Generate the XML document.
             generated_xml = xsd.tostring()
