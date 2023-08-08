@@ -19,23 +19,16 @@ class MyContentHandler(sax.ContentHandler):
     def get_xml(self):
         return "".join(self.xml_output)
 
-def generate_xml(path: str):
-    """Generates an XML document from a local file path or URL.
+def generate_xml(xsd_content: str):
+    """Generates an XML document from XSD content.
 
     Args:
-        path: The local file path or URL to the XSD file.
+        xsd_content: The content of the XSD file as a string.
 
     Returns:
         The XML document.
     """
     try:
-        # If the path is a URL, fetch the content.
-        if path.startswith('http://') or path.startswith('https://'):
-            xsd_text = requests.get(path).text
-        else:
-            # If the path is a local file path, read its content.
-            xsd_text = open(path, 'r').read()
-
         # Create a XSD parser.
         parser = sax.make_parser()
 
@@ -44,7 +37,7 @@ def generate_xml(path: str):
         parser.setContentHandler(content_handler)
 
         # Parse the XSD content.
-        parser.feed(xsd_text)
+        parser.feed(xsd_content)
 
         # Get the generated XML from the custom handler
         xml_document = content_handler.get_xml()
@@ -63,23 +56,22 @@ def main():
     )
 
     if xsd_input_method == "Local File Path":
-        xsd_path = st.text_input('Enter the path to the local XSD file:')
+        xsd_content = open(st.text_input('Enter the path to the local XSD file:'), 'r').read()
     elif xsd_input_method == "URL":
-        xsd_path = st.text_input('Enter the URL to the XSD file:')
+        xsd_content = requests.get(st.text_input('Enter the URL to the XSD file:')).text
     elif xsd_input_method == "File Upload":
         xsd_file = st.file_uploader('Upload XSD File', type=['xsd'])
         if xsd_file:
-            xsd_path = xsd_file.read().decode('utf-8')
+            xsd_content = xsd_file.read().decode('utf-8')
     else:
         # Use the predefined sample XSD from the provided URL
         sample_xsd_url = "https://github.com/Tax-Technology/XSD-to-XML-Generator/raw/main/FAIA_v_2.01_full.xsd"
-        response = requests.get(sample_xsd_url)
-        xsd_path = response.text
+        xsd_content = requests.get(sample_xsd_url).text
 
-    if xsd_path:
+    if xsd_content:
         try:
             # Generate the XML document.
-            xml_document = generate_xml(xsd_path)
+            xml_document = generate_xml(xsd_content)
 
             # Display the generated XML using Streamlit markdown.
             st.markdown(f"Generated XML:\n\n```xml\n{xml_document}\n```")
