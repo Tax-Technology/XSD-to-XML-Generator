@@ -7,7 +7,7 @@ class MyContentHandler(sax.ContentHandler):
         sax.ContentHandler.__init__(self)
         self.xml_output = []
 
-    def startElement(self, name, attrs):
+    def startElement(self, name, attrs=None):
         self.xml_output.append(f"<{name}>")
 
     def endElement(self, name):
@@ -19,7 +19,7 @@ class MyContentHandler(sax.ContentHandler):
     def get_xml(self):
         return "".join(self.xml_output)
 
-def generate_xml(path):
+def generate_xml(path: str):
     """Generates an XML document from a local file path or URL.
 
     Args:
