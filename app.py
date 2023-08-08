@@ -41,7 +41,8 @@ def main():
                 for root_element_name in xsd.root_elements:
                     root_element = xsd.elements[root_element_name]
                     st.write(f"Root Element: {root_element_name} (Type: {root_element.type_name})")
-                    st.write(get_element_info(root_element))
+                    info = get_element_info(root_element)
+                    st.write(info)
 
             keyref_info = get_keyref_info(xsd)
             if keyref_info:
